@@ -61,6 +61,9 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error calling Mistral API for chat:", error);
     // Fall back to mock data if API call fails
-    return NextResponse.json({ response: mockChatResponse(userMessage, extractedText) }, { status: 500 });
+    return NextResponse.json(
+      { response: mockChatResponse("Error occurred", "Error extracting text") }, 
+      { status: 500 }
+    );
   }
 } 
