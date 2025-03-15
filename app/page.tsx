@@ -5,7 +5,7 @@ import { ScreenshotUpload } from "@/components/screenshot-upload"
 import { ChatInterface } from "@/components/chat-interface"
 import { TextDisplay } from "@/components/text-display"
 import { useToast } from "@/hooks/use-toast"
-import { mockExtractText, mockChatResponse } from "@/lib/mock-service"
+import { extractTextWithMistral, generateChatResponse } from "@/lib/mistral-service"
 import type { Message } from "@/types/chat"
 import { saveSession, loadSession } from "@/lib/session-storage"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -52,12 +52,12 @@ export default function Home() {
     setIsProcessing(true)
 
     try {
-      // Simulate OCR processing
-      const text = await mockExtractText(imageDataUrl)
+      // Use Mistral API to extract text from the screenshot
+      const text = await extractTextWithMistral(imageDataUrl)
       setExtractedText(text)
       toast({
         title: "Screenshot processed",
-        description: "The text has been extracted successfully.",
+        description: "The text has been extracted successfully using Mistral AI.",
       })
 
       // Switch to chat tab after processing
@@ -88,8 +88,8 @@ export default function Home() {
     setIsResponding(true)
 
     try {
-      // Simulate AI response
-      const response = await mockChatResponse(content, extractedText)
+      // Generate response using Mistral AI
+      const response = await generateChatResponse(content, extractedText)
 
       // Add AI response
       const aiMessage: Message = {
