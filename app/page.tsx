@@ -5,7 +5,6 @@ import { ScreenshotUpload } from "@/components/screenshot-upload"
 import { ChatInterface } from "@/components/chat-interface"
 import { TextDisplay } from "@/components/text-display"
 import { useToast } from "@/hooks/use-toast"
-import { extractTextWithMistral, generateChatResponse } from "@/lib/mistral-service"
 import type { Message } from "@/types/chat"
 import { saveSession, loadSession } from "@/lib/session-storage"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -52,9 +51,22 @@ export default function Home() {
     setIsProcessing(true)
 
     try {
-      // Use Mistral API to extract text from the screenshot
-      const text = await extractTextWithMistral(imageDataUrl)
-      setExtractedText(text)
+      // Use server-side API route to extract text securely
+      const response = await fetch('/api/extract-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageDataUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      setExtractedText(data.text);
+      
       toast({
         title: "Screenshot processed",
         description: "The text has been extracted successfully using Mistral AI.",
@@ -63,6 +75,7 @@ export default function Home() {
       // Switch to chat tab after processing
       setActiveTab("chat")
     } catch (error) {
+      console.error("Error extracting text:", error);
       toast({
         title: "Processing failed",
         description: "Failed to extract text from the screenshot.",
@@ -88,19 +101,35 @@ export default function Home() {
     setIsResponding(true)
 
     try {
-      // Generate response using Mistral AI
-      const response = await generateChatResponse(content, extractedText)
+      // Use server-side API route for chat
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userMessage: content,
+          extractedText 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
 
       // Add AI response
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response,
+        content: data.response,
         timestamp: new Date().toISOString(),
       }
 
       setMessages((prev) => [...prev, aiMessage])
     } catch (error) {
+      console.error("Error getting chat response:", error);
       toast({
         title: "Response failed",
         description: "Failed to get a response from the AI.",
