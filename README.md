@@ -7,7 +7,7 @@ First, set up your environment variables:
 1. Create a `.env.local` file in the root directory
 2. Add your Mistral API key:
    ```
-   NEXT_PUBLIC_MISTRAL_API_KEY=your_mistral_api_key_here
+   MISTRAL_API_KEY=your_mistral_api_key_here
    ```
    You can get an API key by signing up at [Mistral AI](https://mistral.ai/)
 
